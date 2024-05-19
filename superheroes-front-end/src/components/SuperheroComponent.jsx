@@ -36,7 +36,7 @@ const SuperheroComponent = () => {
         element.preventDefault();
 
         if(validateForm()) {
-            const Superhero = {name, superhero, age, description, id};
+            const Superhero = {id, name, superhero, age, description};
             console.log(Superhero);
 
             createSuperhero(Superhero).then((response) => {
