@@ -1,47 +1,63 @@
-import React, {useState} from "react";
-import { createSuperhero } from "../services/SuperheroService";
-
+import React, {useEffect, useState} from "react";
+import { createSuperhero, getSuperhero, updateSuperhero } from "../services/SuperheroService";
+import { useNavigate, useParams } from "react-router-dom";
+ 
 const SuperheroComponent = () => {
 
-    const [id, setID] = useState('')
+    const [typeId, setTypeId] = useState('')
     const [name, setName] = useState('')
-    const [superhero, setSuperhero] = useState('')
-    const [age, setAge] = useState('')
-    const [description, setDescription] = useState('')
+    const [alias, setAlias] = useState('')
+    const [creationDate, setCreationDate] = useState('')
+    const navigator = useNavigate();
+    const {id} = useParams();
 
     const [errors ,setErrors] = useState({
-        id: '',
+        typeId: '',
         name: '',
-        superhero: '',
-        age: '',
-        description: ''
+        alias: '',
+        creationDate: '',
     })
 
-    function handleID(element) {
-        setID(element.target.value);
+    function handleTypeId(element) {
+        setTypeId(element.target.value);
     }
     function handleName(element) {
         setName(element.target.value);
     }
-    function handleSuperhero(element) {
-        setSuperhero(element.target.value);
+    function handleAlias(element) {
+        setAlias(element.target.value);
     }
-    function handleAge(element) {
-        setAge(element.target.value);
+    function handleCreationDate(element) {
+        setCreationDate(element.target.value);
     }
-    function handleDescription(element) {
-        setDescription(element.target.value);
-    }
-    function saveSuperhero(element) {
+    useEffect(() => {
+        if(id) {getSuperhero(id).then((response) => {
+            setTypeId(response.data.typeId);
+            setName(response.data.name);
+            setAlias(response.data.alias);
+            setCreationDate(response.data.creationDate);
+        }).catch(error => {console.error(error);})}
+    }, [id])
+
+    function saveOrUpdateSuperhero(element) {
         element.preventDefault();
 
+        const Superhero = {typeId, name, alias, creationDate};
+        console.log(Superhero);
+
         if(validateForm()) {
-            const Superhero = {id, name, superhero, age, description};
-            console.log(Superhero);
+            if(id) {
+                updateSuperhero(id, Superhero).then((response) => {
+                    console.log(response.data);
+                    navigator('/');
+                }).catch(error => {console.error(error);})
+            } else {
 
             createSuperhero(Superhero).then((response) => {
-            console.log(response.data)
-            })
+            console.log(response.data);
+            navigator('/');
+            }).catch(error => {console.error(error);})
+            }
         }
     }
     function validateForm() {
@@ -49,10 +65,10 @@ const SuperheroComponent = () => {
 
         const errorsCopy = {... errors}
 
-        if(id.trim()) {
-            errorsCopy.id = '';
+        if(typeId.trim()) {
+            errorsCopy.typeId = '';
         } else {
-            errorsCopy.id = 'ID is required';
+            errorsCopy.typeId = 'Type ID is required';
             valid = false;
         }
         if(name.trim()) {
@@ -61,26 +77,27 @@ const SuperheroComponent = () => {
             errorsCopy.name = 'Name is required';
             valid = false;
         }
-        if(superhero.trim()) {
-            errorsCopy.superhero = '';
+        if(alias.trim()) {
+            errorsCopy.alias = '';
         } else {
-            errorsCopy.superhero = 'Superhero is required';
+            errorsCopy.alias = 'Alias is required';
             valid = false;
         }
-        if(age.trim()) {
-            errorsCopy.age = '';
+        if(creationDate.trim()) {
+            errorsCopy.creationDate = '';
         } else {
-            errorsCopy.age = 'Age is required';
-            valid = false;
-        }
-        if(description.trim()) {
-            errorsCopy.description = '';
-        } else {
-            errorsCopy.description = 'Description is required';
+            errorsCopy.creationDate = 'Creation Date is required';
             valid = false;
         }
         setErrors(errorsCopy);
         return valid;
+    }
+    function pageTitle() {
+        if(id){
+            return <h2 className="text-center">Update Superhero</h2>
+        } else {
+            return <h2 className="text-center">Add Superhero</h2>
+        }
     }
 
     return (
@@ -88,18 +105,18 @@ const SuperheroComponent = () => {
             <br/> <br/>
             <div className="row">
                 <div className="card col-md-6 offset-md-3 offset-md-3">
-                    <h2 className="text-center">Add Superhero</h2>
+                    {pageTitle()}
                     <div className="card-body">
                         <form>
 
                         <div className="form-group mb-2">
-                                <label className="form-label">ID:</label>
-                                <input type="number" placeholder="Enter ID" name="id" value={id} className={`form-control 
-                                ${errors.id ? 'is-invalid': ''}`}
-                                onChange={handleID}>
+                                <label className="form-label">Type ID:</label>
+                                <input type="text" placeholder="Enter Type ID" name="typeId" value={typeId} className={`form-control 
+                                ${errors.typeId ? 'is-invalid': ''}`}
+                                onChange={handleTypeId}>
 
                                 </input>
-                                {errors.id && <div className="invalid-feedback">{errors.id}</div>}
+                                {errors.typeId && <div className="invalid-feedback">{errors.typeId}</div>}
                             </div>
 
                             <div className="form-group mb-2">
@@ -113,32 +130,24 @@ const SuperheroComponent = () => {
                             </div>
 
                             <div className="form-group mb-2">
-                                <label className="form-label">Superhero:</label>
-                                <input type="text" placeholder="Enter base Superhero" name="superhero" value={superhero} 
-                                className={`form-control ${errors.superhero ? 'is-invalid': ''}`} onChange={handleSuperhero}>
+                                <label className="form-label">Alias:</label>
+                                <input type="text" placeholder="Enter an Alias" name="alias" value={alias} 
+                                className={`form-control ${errors.alias ? 'is-invalid': ''}`} onChange={handleAlias}>
 
                                 </input>
-                                {errors.superhero && <div className="invalid-feedback">{errors.superhero}</div>}
+                                {errors.alias && <div className="invalid-feedback">{errors.alias}</div>}
                             </div>
 
                             <div className="form-group mb-2">
-                                <label className="form-label">Age:</label>
-                                <input type="text" placeholder="Enter age" name="age" value={age} 
-                                className={`form-control ${errors.age ? 'is-invalid': ''}`} onChange={handleAge}>
+                                <label className="form-label">Creation Date:</label>
+                                <input type="date" placeholder="Enter Creation Date" name="creationDate" value={creationDate} 
+                                className={`form-control ${errors.creationDate ? 'is-invalid': ''}`} onChange={handleCreationDate}>
 
                                 </input>
-                                {errors.age && <div className="invalid-feedback">{errors.age}</div>}
+                                {errors.creationDate && <div className="invalid-feedback">{errors.creationDate}</div>}
                             </div>
 
-                            <div className="form-group mb-2">
-                                <label className="form-label">Description:</label>
-                                <input type="text" placeholder="Enter a description" name="description" value={description} 
-                                className={`form-control ${errors.description ? 'is-invalid': ''}`} onChange={handleDescription}>
-
-                                </input>
-                                {errors.description && <div className="invalid-feedback">{errors.description}</div>}
-                            </div>
-                            <button className="btn btn-success" onClick={saveSuperhero}>Submit</button>
+                            <button className="btn btn-success" onClick={saveOrUpdateSuperhero}>Submit</button>
                         </form>
                     </div>
                 </div>
